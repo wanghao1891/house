@@ -2,6 +2,9 @@ const request = require('request');
 const htmlparser = require("htmlparser");
 const co = require('co');
 const chalk = require('chalk');
+const fs = require('fs');
+const path = require('path');
+const moment = require('moment');
 
 let urls = [
     'http://bj.lianjia.com/ershoufang/hu1co42rs%E5%8C%97%E8%A1%97%E5%AE%B6%E5%9B%AD/',
@@ -55,6 +58,14 @@ co(function *() {
         }
 
         console.log(house_object_list);
+
+        fs.writeFile(path.resolve(__dirname, `lianjia-${moment().format('YYYYMMDD')}.json`), JSON.stringify(house_object_list, null, 2), {flag: 'w'}, function (err) {
+            if(err) {
+                console.error(err);
+            } else {
+                console.log('Save success');
+            }
+        });
     })
     .catch(
         (error) => {

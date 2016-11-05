@@ -13,6 +13,7 @@
     "co": "^4.6.0",
     "htmlparser": "^1.7.7",
     "htmlparser2": "^3.9.2",
+    "moment": "^2.15.2",
     "request": "^2.78.0"
   }
 }
