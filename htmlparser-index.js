@@ -38,14 +38,23 @@ co(function *() {
 })
     .then((val) => {
         console.log('Done!', val ? val : '');
-        console.log(html_list);
+        //console.log(html_list);
 
         for(let html of html_list) {
-            do_parse(html);
+            do_parse_html(html);
         }
 
-        console.log(house_list);
+        console.log(JSON.stringify(house_list[0].children, null, 2));
         console.log(house_list.length);
+
+        let house_object_list = [];
+        for(let house of house_list) {
+            house_object_list.push(
+                do_parse_house(house)
+            );
+        }
+
+        console.log(house_object_list);
     })
     .catch(
         (error) => {
@@ -54,56 +63,48 @@ co(function *() {
         }
     );
 
-console.log('html_list', html_list);
+function do_parse_house(house) {
+    let _house = {};
+    for(let e of house.children) {
+        if(e.attribs) {
+            switch(e.attribs.class) {
+            case 'title':
+                _house.title = e.children[0].children[0].raw;
+                break;
 
-//for(let url of urls) {
-//    request(url, function (error, response, body) {
-//        if (!error && response.statusCode == 200) {
-//            house_list.push(body);
-//            //console.log(body); // Show the HTML for the Google homepage.
-//            //var rawHtml = "Xyz <script language= javascript>var foo = '<<bar>>';< /  script><!--<!-- Waah! -- -->";
-////            var handler = new htmlparser.DefaultHandler(function (error, dom) {
-////                if(error){
-////
-////                } else {
-////                    //console.log('dom:', dom);
-////                }
-////            });
-////            var parser = new htmlparser.Parser(handler);
-////            parser.parseComplete(body);
-////            //console.log(JSON.stringify(handler.dom, null, 2));
-////            console.log(handler.dom);
-////            //        for(let e of handler.dom[1].children[1].children) {
-////            //            if(e.raw == 'div class="content"') {
-////            //                console.log(e.children[1].children);
-////            //
-////            //                for(let e1 of (e.children[1].children)) {
-////            //                    if(e1.raw === 'ul class="listContent" log-mod="list"') {
-////            //                        console.log(JSON.stringify(e1.children[0].children[1].children[5].children, null ,2));
-////            //                    }
-////            //                }
-////            //            }
-////            //        }
-////            //console.log(handler.dom[1].children[1]);
-////
-////            function get_data(children) {
-////                for(let e of children) {
-////                    //console.log('raw', e.raw);
-////                    //if(e.raw === 'ul class="listContent" log-mod="list"') {
-////                    if(e.raw === 'div class="info clear"') {
-////                        house_list.push(e);
-////                    } else if(e.children){
-////                        get_data(e.children);
-////                    }
-////                }
-////            }
-////
-////            get_data(handler.dom);
-//        }
-//    });
-//}
+            case 'address':
+                _house.address = e.children[0].children[1].children[0].raw
+                    + e.children[0].children[2].raw;
+                _house.area = _house.address.split(' | ')[2].replace(/平米/, '');
+                break;
 
-function do_parse(html) {
+            case 'flood':
+                _house.floor = e.children[0].children[1].raw
+                    + e.children[0].children[2].children[0].raw;
+                break;
+
+            case 'followInfo':
+                _house.follow_info = e.children[1].raw;
+                break;
+
+            case 'tag':
+                //_house.tag = e.children[0].children[0].raw;
+                break;
+
+            case 'priceInfo':
+                _house.price = {
+                    total: e.children[0].children[0].children[0].raw,
+                    unit: e.children[1].attribs['data-price']
+                };
+                break;
+            }
+        }
+    }
+
+    return _house;
+}
+
+function do_parse_html(html) {
     var handler = new htmlparser.DefaultHandler(function (error, dom) {
         if(error){
 
@@ -113,25 +114,11 @@ function do_parse(html) {
     });
     var parser = new htmlparser.Parser(handler);
     parser.parseComplete(html);
-    //console.log(JSON.stringify(handler.dom, null, 2));
-    console.log(handler.dom);
-    //        for(let e of handler.dom[1].children[1].children) {
-    //            if(e.raw == 'div class="content"') {
-    //                console.log(e.children[1].children);
-    //
-    //                for(let e1 of (e.children[1].children)) {
-    //                    if(e1.raw === 'ul class="listContent" log-mod="list"') {
-    //                        console.log(JSON.stringify(e1.children[0].children[1].children[5].children, null ,2));
-    //                    }
-    //                }
-    //            }
-    //        }
-    //console.log(handler.dom[1].children[1]);
+
+    //console.log(handler.dom);
 
     function get_data(children) {
         for(let e of children) {
-            //console.log('raw', e.raw);
-            //if(e.raw === 'ul class="listContent" log-mod="list"') {
             if(e.raw === 'div class="info clear"') {
                 house_list.push(e);
             } else if(e.children){
