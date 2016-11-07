@@ -10,7 +10,12 @@ const program = require('commander');
 program
     .option('--doing')
     .option('--done')
+    .option('--region [region]')
+    .option('--area [area]')
     .parse(process.argv);
+
+const region = program.region || '8';
+const area = program.area || '35';
 
 if(program.doing) {
     doing();
@@ -50,12 +55,40 @@ function do_parse_html($in) {
 
 function done() {
     let urls = [];
+    console.log('region:', region);
+    switch(region) {
+    case '8':
+        switch(area) {
+        case '35':
+            for(let i = 1; i <= 10; i++) {
+                urls.push(`http://bj.lianjia.com/chengjiao/hu1pg${i}a1c1111027375904rs%E5%8C%97%E8%A1%97%E5%AE%B6%E5%9B%AD/`);
+            }
+            break;
+        }
+        break;
 
-    for(let i = 1; i <= 10; i++) {
-        urls.push(`http://bj.lianjia.com/chengjiao/hu1pg${i}a1c1111027375904rs%E5%8C%97%E8%A1%97%E5%AE%B6%E5%9B%AD/`);
+    case '6':
+        switch(area) {
+        case '60':
+            for(let i = 1; i <= 6; i++) {
+                urls.push(`http://bj.lianjia.com/chengjiao/hu1pg${i}a2c1111027379515rs%E5%8C%97%E8%A1%97%E5%AE%B6%E5%9B%AD/`);
+            }
+            break;
+        }
+        break;
+
+    case 's':
+        switch(area) {
+        case '50':
+            for(let i = 1; i <= 5; i++) {
+                urls.push(`http://bj.lianjia.com/chengjiao/pg${i}a1c1111027379442/?sug=%E5%8F%8C%E9%BE%99%E5%8D%97%E9%87%8C`);
+            }
+            break;
+        }
+        break;
     }
 
-    let url_base_8_35 = '';
+    console.log('urls:', urls);
 
     let html_list = [];
 
@@ -86,7 +119,7 @@ function done() {
     })
         .then((val) => {
             console.log('Done!', val ? val : '');
-            console.log(html_list.length);
+            console.log('html_list.length:', html_list.length);
 
             for(let html of html_list) {
                 do_parse_html({
@@ -96,8 +129,8 @@ function done() {
                 });
             }
 
-            console.log(JSON.stringify(house_list[0].children, null, 2));
-            console.log(house_list.length);
+            //console.log(JSON.stringify(house_list[0].children, null, 2));
+            console.log('house_list.length:', house_list.length);
 
             let house_object_list = [];
             let house_csv_list = '面积（平米）,单价（元/平米）,成交日期,总价（万）\n';
@@ -112,7 +145,9 @@ function done() {
 
             console.log(house_object_list);
 
-            fs.writeFile(path.resolve(__dirname, `lianjia-done-${moment().format('YYYYMMDD')}.json`), JSON.stringify(house_object_list, null, 2), {flag: 'w'}, function (err) {
+            let prefix = `lianjia-${region}-${area}`;
+
+            fs.writeFile(path.resolve(__dirname, `${prefix}-done-${moment().format('YYYYMMDD')}.json`), JSON.stringify(house_object_list, null, 2), {flag: 'w'}, function (err) {
                 if(err) {
                     console.error(err);
                 } else {
@@ -120,7 +155,7 @@ function done() {
                 }
             });
 
-            fs.writeFile(path.resolve(__dirname, `lianjia-done-${moment().format('YYYYMMDD')}.csv`), house_csv_list, {flag: 'w'}, function (err) {
+            fs.writeFile(path.resolve(__dirname, `${prefix}-done-${moment().format('YYYYMMDD')}.csv`), house_csv_list, {flag: 'w'}, function (err) {
                 if(err) {
                     console.error(err);
                 } else {
